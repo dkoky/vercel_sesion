@@ -6,9 +6,22 @@ const redis = new Redis({
 });
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") return res.status(405).end();
+  try {
+    if (req.method !== "POST") {
+      return res.status(405).json({ message: "Método no permitido" });
+    }
 
-  const { user } = JSON.parse(req.body);
-  await redis.del(`session:${user}`);
-  return res.status(200).json({ message: "User disconnected" });
+    const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
+    const user = body?.user;
+
+    if (!user) {
+      return res.status(400).json({ message: "Falta el campo 'user'" });
+    }
+
+    await redis.del(`session:${user}`);
+    return res.status(200).json({ message: "Usuario desconectado correctamente" });
+  } catch (err) {
+    console.error("Error en logout:", err);
+    return res.status(500).json({ message: "Error interno del servidor" });
+  }
 }
