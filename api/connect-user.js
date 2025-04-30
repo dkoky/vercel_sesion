@@ -1,11 +1,11 @@
-import { Redis } from "@upstash/redis";
+const { Redis } = require("@upstash/redis");
 
 const redis = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL,
   token: process.env.UPSTASH_REDIS_REST_TOKEN,
 });
 
-export default async function handler(req, res) {
+module.exports = async (req, res) => {
   try {
     if (req.method !== "POST") {
       return res.status(405).json({ message: "Método no permitido" });
@@ -23,11 +23,10 @@ export default async function handler(req, res) {
       return res.status(403).json({ message: "Usuario ya conectado" });
     }
 
-    await redis.set(`session:${user}`, "connected", { ex: 3600 }); // expira en 1 hora
-
-    return res.status(200).json({ message: "Usuario marcado como conectado" });
+    await redis.set(`session:${user}`, "connected", { ex: 3600 });
+    return res.status(200).json({ message: "Usuario conectado correctamente" });
   } catch (err) {
     console.error("Error en connect-user:", err);
     return res.status(500).json({ message: "Error interno del servidor" });
   }
-}
+};
